@@ -1,0 +1,30 @@
+{
+  "compilerOptions": {
+    "target": "es2017",                                  
+    "lib": ["es6"],                                        
+    "experimentalDecorators": true,                   
+    "emitDecoratorMetadata": true,    
+    "module": "commonjs",                                 
+    "rootDir": "./src",                                  
+    "typeRoots": [
+      "./node_modules/@types",
+      "./src/@types"
+    ],                                  
+    "resolveJsonModule": true,         
+    "allowJs": true,               
+    "outDir": "./dist",                                   
+    "removeComments": true,          
+    "esModuleInterop": true,                             
+    "forceConsistentCasingInFileNames": true,  
+    "skipLibCheck": true,
+    "paths": {
+      "@controllers/*": ["./src/controllers/*"],
+      "@middlewares/*": ["./src/middlewares/*"],
+      "@config/*": ["./src/config/*"],
+      "@dao/*": ["./src/dao/*"]
+    }                           
+  },
+  "include": [
+    "src/**/*"
+  ]
+}
