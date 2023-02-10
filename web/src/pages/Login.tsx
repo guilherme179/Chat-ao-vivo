@@ -1,10 +1,14 @@
 import { User, Lock } from "phosphor-react";
 import { useState } from "react";
 import { api } from "../lib/axios";
+import { useNavigate } from "react-router-dom";
+import jwt_decode from "jwt-decode";
 
 export function Login () {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
+  const navigate = useNavigate();
+
 
   async function submit(e: Event){
     e.preventDefault();
@@ -19,6 +23,10 @@ export function Login () {
     if(auth.status === 202){
       setUsername('');
       setPassword('');
+      const decode = jwt_decode(auth.data.token);
+      sessionStorage.setItem('token', auth.data.token);
+      sessionStorage.setItem('exp', decode.exp);
+      navigate("/chat");
     } else {
 
     }
