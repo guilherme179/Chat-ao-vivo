@@ -66,6 +66,8 @@ io.on('connection', async socket =>{
   console.log(connectedClients);
 
   socket.emit('previousMessage', await MessagesController.getAllMessages());
+  
+  io.emit('connectedClients', connectedClients);
 
   socket.on('sendMessage', async data => {   
     await MessagesController.saveMessage(data);
@@ -76,6 +78,7 @@ io.on('connection', async socket =>{
   });
 
   io.on('disconnect', socket => {
+    console.log('desconectado: ' + socket.id);
      //Remove o ID do socket desconectado do array
      connectedClients = connectedClients.filter(client => client.socket_id !== socket.id);
      // Desconecta o usuário
