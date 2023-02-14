@@ -23,10 +23,11 @@ interface ChatProps {
   socket: socketIO.Socket<DefaultEventsMap, DefaultEventsMap>;
 }
 
-export function Chat ({ socket }: ChatProps) {
+export function Private ({ socket }: ChatProps) {
   const token = sessionStorage.getItem('token');  
   
   const [username, setUsername] = useState(''); 
+  const [usernameToPrivate, setUsernameToPrivate] = useState(''); 
   const [yourMessage, setYourMessage] = useState(''); 
   const [broadcast, setBroadcast] = useState(''); 
   const [messages, setMessages] = useState<Message[]>([]);
@@ -43,16 +44,18 @@ export function Chat ({ socket }: ChatProps) {
     user: string;
   }
 
-  socket.on('receivedMessage', (message: Message) => { 
+  socket.on('receivedMessagePrivate', (message: Message) => { 
     setMessages([...messages, message]);
   });
 
   socket.on('connectedClients', (connectedClientsArray: any) => { 
+    console.log(connectedClientsArray);
     setUsers(connectedClientsArray);
   });
 
-  socket.on('userWriting', (broadcast: string) => { 
-    setBroadcast(broadcast);
+  socket.on('userWritingPrivate', (msg: string) => { 
+    console.log(msg);
+    setBroadcast(msg);
   });
 
   const handleSubmit = async (e: MouseEvent<HTMLButtonElement, MouseEvent>) => {
@@ -64,10 +67,20 @@ export function Chat ({ socket }: ChatProps) {
         message: yourMessage
       };
 
-      socket.emit('sendMessage', messageObject);
-      socket.emit('writing', '');
+      socket.emit('sendMessagePrivate', messageObject);
 
       setYourMessage('');
+    }
+  }
+
+  function handleYourMessage(message: string) {
+    setYourMessage(message); 
+    if(usernameToPrivate != null && usernameToPrivate != ''){
+      if(message.length > 0){
+        socket.emit('writingPrivate', username + ' is writing...', usernameToPrivate);
+      } else { 
+        socket.emit('writingPrivate', '', usernameToPrivate);
+      }
     }
   }
 
@@ -76,7 +89,7 @@ export function Chat ({ socket }: ChatProps) {
       setUsers(connectedClientsArray);
     });
     
-    socket.on('previousMessage', (messages: Message) => {
+    socket.on('previousMessagePrivate', (messages: Message) => {
       if (Array.isArray(messages)) {
         setMessages(messages);
       }
@@ -87,7 +100,7 @@ export function Chat ({ socket }: ChatProps) {
       setUsername(decode.user);
     }
   }, []);
-
+  
   let lastAuthor = '';
   let lastDate: Date = new Date(0);
   let currentDate: Date;
@@ -100,7 +113,7 @@ export function Chat ({ socket }: ChatProps) {
           <div className="w-2/3 flex place-content-center bg-login-700 rounded-md rounded-b-none border text-zinc-400 border-zinc-400 border-solid">
             <p className="text-zinc-300 text-xl font-semibold">Lista de usuários conectados</p>
           </div>
-          <div className="w-2/3 h-[400px] m-[20px 0] bg-login-700 rounded-md rounded-t-none border text-zinc-400 border-t-0 border-zinc-400 border-solid p-5 overflow-y-scroll" id="chat">
+          <div className="w-2/3 h-[462px] bg-login-700 rounded-md rounded-t-none border text-zinc-400 border-t-0 border-zinc-400 border-solid p-5 overflow-y-scroll" id="chat">
             { users.map((user: ConnectedClients, i) =>{
               if(user.user === username){
                 return(
@@ -119,10 +132,11 @@ export function Chat ({ socket }: ChatProps) {
           </div>  
         </div>
         <div className="h-4/5 w-2/3 flex flex-col items-center justify-center">
+          <input type="hidden" placeholder="Your username..." value={username} onChange={(e) => { setUsername(e.target.value) }} disabled/>  
           <div className="w-full flex place-content-center">
-            <input type="hidden" placeholder="Your username..." value={username} onChange={(e) => { setUsername(e.target.value) }} className="bg-login-700 w-2/5 flex text-center p-3 rounded-md outline-none focus:border-zinc-300 focus:border text-zinc-300 text-xl mb-5" disabled/>
+            <input type="text" placeholder="Username to private message..." value={usernameToPrivate} onChange={(e) => { setUsernameToPrivate(e.target.value) }} className="bg-login-700 w-[60%] flex text-center p-3 rounded-md outline-none focus:border-zinc-300 focus:border text-zinc-300 text-xl mb-5"/>
           </div>
-          <div className="w-3/5 h-[400px] m-[20px 0] bg-login-700 rounded-md border text-zinc-400 border-zinc-400 border-solid p-5 overflow-y-scroll" id="chat">
+          <div className="w-3/5 h-[348px] bg-login-700 rounded-md border text-zinc-400 border-zinc-400 border-solid p-5 overflow-y-scroll" id="chat">
             { messages.map((message: Message, i) =>{
                if (message.author === username) {
                 lastAuthor = '';
@@ -156,7 +170,7 @@ export function Chat ({ socket }: ChatProps) {
             <p className="flex items-end">{broadcast}</p>
           </div>
           <div className="w-full flex place-content-center">
-            <input type="text" maxLength={255} placeholder="Your message..." value={yourMessage} onChange={(e) => { setYourMessage(e.target.value); if(e.target.value.length > 0){socket.emit('writing', username + ' is writing...');} else { socket.emit('writing', '')}}}  className="bg-login-700 w-[48%] flex text-center p-3 rounded-md outline-none focus:border-zinc-300 focus:border text-zinc-300 text-xl mt-5"/>
+            <input type="text" placeholder="Your message..." value={yourMessage} onChange={(e) => { handleYourMessage(e.target.value); }}  className="bg-login-700 w-[48%] flex text-center p-3 rounded-md outline-none focus:border-zinc-300 focus:border text-zinc-300 text-xl mt-5"/>
             <button className="bg-green-800 w-[10%] flex justify-center items-center p-3 ml-[2%] rounded-md outline-none hover:bg-green-700 text-white text-base mt-5" onClick={handleSubmit} >Submit</button>
           </div>
         </div>

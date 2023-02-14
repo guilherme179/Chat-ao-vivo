@@ -27,6 +27,7 @@ export default function Header(socket: ChatProps) {
   function logout() {
     socket.socket.disconnect();
     sessionStorage.clear();
+    navigate("/login");
   }
 
   useEffect(() => {
@@ -43,7 +44,7 @@ export default function Header(socket: ChatProps) {
     <div className="w-full h-16 bg-login-700 flex flex-row">
       <div className="pl-3 p-1 w-[20%] flex flex-row items-center justify-between">
         <a className={`text-white font-semibold text-lg p-[10px] hover:rounded-md rounded-md ${location.pathname === "/chat" ? "bg-green-800" : ""} ${location.pathname === "/chat" ? "hover:bg-green-700" : "hover:bg-green-800"}`} href="/chat">Chat geral</a>
-        <a className={`text-white font-semibold text-lg p-[10px] hover:rounded-md rounded-md ${location.pathname === "/privado" ? "bg-green-800" : ""} ${location.pathname === "/privado" ? "hover:bg-green-700" : "hover:bg-green-800"}`} href="/privado">Privado</a>
+        <a className={`text-white font-semibold text-lg p-[10px] hover:rounded-md rounded-md ${location.pathname === "/private" ? "bg-green-800" : ""} ${location.pathname === "/private" ? "hover:bg-green-700" : "hover:bg-green-800"}`} href="/private">Private</a>
       </div>
       <div className="flex items-center w-2/3 justify-center">
         <img src="./src/img/Chat Online.svg" alt="logo" />

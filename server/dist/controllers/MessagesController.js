@@ -1,81 +1,71 @@
 "use strict";
-
-var _prisma = require("../lib/prisma");
-var _zod = require("zod");
-var _dayjs = _interopRequireDefault(require("dayjs"));
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
+Object.defineProperty(exports, "__esModule", { value: true });
+const prisma_1 = require("../lib/prisma");
+const zod_1 = require("zod");
+const dayjs_1 = __importDefault(require("dayjs"));
 require("dayjs/locale/pt-br");
-var _timezone = _interopRequireDefault(require("dayjs/plugin/timezone"));
-var _utc = _interopRequireDefault(require("dayjs/plugin/utc"));
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-_dayjs.default.locale('pt-br');
-_dayjs.default.extend(_utc.default);
-_dayjs.default.extend(_timezone.default);
+const timezone_1 = __importDefault(require("dayjs/plugin/timezone"));
+const utc_1 = __importDefault(require("dayjs/plugin/utc"));
+dayjs_1.default.locale('pt-br');
+dayjs_1.default.extend(utc_1.default);
+dayjs_1.default.extend(timezone_1.default);
 let currentHourToSaveMessage;
 const getAllMessages = async () => {
-  const time = (0, _dayjs.default)();
-  const hour = time.tz('America/Sao_Paulo').utc(true).toString();
-  const oneHourAgo = (0, _dayjs.default)().tz('America/Sao_Paulo').utc(true).subtract(1, 'hour').toString();
-  // console.log(new Date(hour).toISOString());
-  // console.log(new Date(oneHourAgo).toISOString());
-
-  const data = await _prisma.prisma.message.findMany({
-    where: {
-      sentAt: {
-        lte: new Date(hour).toISOString(),
-        gte: new Date(oneHourAgo).toISOString()
-      }
-    }
-  });
-
-  // console.log(data);
-
-  if (data.length > 0) {
-    return data;
-  }
-};
-const saveMessage = async data => {
-  const saveMessageOnDataBase = _zod.z.object({
-    message: _zod.z.string(),
-    author: _zod.z.string()
-  });
-  const {
-    author,
-    message
-  } = saveMessageOnDataBase.parse(data);
-  const time = (0, _dayjs.default)();
-  currentHourToSaveMessage = time.tz('America/Sao_Paulo').utc(true).format();
-  await _prisma.prisma.message.create({
-    data: {
-      user: {
-        connect: {
-          username: author
+    const time = (0, dayjs_1.default)();
+    const hour = time.tz('America/Sao_Paulo').utc(true).toString();
+    const oneHourAgo = (0, dayjs_1.default)().tz('America/Sao_Paulo').utc(true).subtract(1, 'hour').toString();
+    const data = await prisma_1.prisma.message.findMany({
+        where: {
+            sentAt: {
+                lte: new Date(hour).toISOString(),
+                gte: new Date(oneHourAgo).toISOString(),
+            }
         }
-      },
-      text: message,
-      sentAt: currentHourToSaveMessage
+    });
+    if (data.length > 0) {
+        return data;
     }
-  });
 };
-const getSavedMessage = async data => {
-  const searchMessageOnDatabase = _zod.z.object({
-    message: _zod.z.string(),
-    author: _zod.z.string()
-  });
-  const {
-    author,
-    message
-  } = searchMessageOnDatabase.parse(data);
-  const searchMessage = await _prisma.prisma.message.findFirst({
-    where: {
-      author: author,
-      text: message,
-      sentAt: currentHourToSaveMessage
-    }
-  });
-  return searchMessage;
+const saveMessage = async (data) => {
+    const saveMessageOnDataBase = zod_1.z.object({
+        message: zod_1.z.string(),
+        author: zod_1.z.string()
+    });
+    const { author, message } = saveMessageOnDataBase.parse(data);
+    const time = (0, dayjs_1.default)();
+    currentHourToSaveMessage = time.tz('America/Sao_Paulo').utc(true).format();
+    await prisma_1.prisma.message.create({
+        data: {
+            user: {
+                connect: {
+                    username: author
+                }
+            },
+            text: message,
+            sentAt: currentHourToSaveMessage
+        }
+    });
+};
+const getSavedMessage = async (data) => {
+    const searchMessageOnDatabase = zod_1.z.object({
+        message: zod_1.z.string(),
+        author: zod_1.z.string()
+    });
+    const { author, message } = searchMessageOnDatabase.parse(data);
+    const searchMessage = await prisma_1.prisma.message.findFirst({
+        where: {
+            author: author,
+            text: message,
+            sentAt: currentHourToSaveMessage
+        }
+    });
+    return searchMessage;
 };
 module.exports = {
-  getAllMessages,
-  saveMessage,
-  getSavedMessage
+    getAllMessages,
+    saveMessage,
+    getSavedMessage
 };

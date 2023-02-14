@@ -60,32 +60,52 @@ io.on('connection', async socket =>{
   
   const userAlreadyConnected = connectedClients.find(client => client.user === socket.user.user);
   if (!userAlreadyConnected) {
-    connectedClients.push({ socket_id: socket.id, user: socket.user.user });
+    connectedClients.push({ socket_id: socket.id, user: socket.user.user, socket: socket });
   }
 
-  console.log(connectedClients);
+  // console.log(connectedClients);
 
   socket.emit('previousMessage', await MessagesController.getAllMessages());
   
-  io.emit('connectedClients', connectedClients);
+  const clientsToSend = connectedClients.map(client => ({ socket_id: client.socket_id, user: client.user }));
+  io.emit('connectedClients', clientsToSend);
 
-  socket.on('sendMessage', async data => {   
+  socket.on('sendMessage', async (data: any) => {   
     await MessagesController.saveMessage(data);
       
     // socket.broadcast.emit('receivedMessage', await MessagesController.getSavedMessage(data));
     // socket.emit('receivedMessage', await MessagesController.getSavedMessage(data));
+
     io.emit('receivedMessage', await MessagesController.getSavedMessage(data));
   });
 
-  io.on('disconnect', socket => {
+  socket.on('writing', (msg: string) => {
+    socket.broadcast.emit('userWriting', msg);
+  });
+
+  socket.on('writingPrivate', (msg: string, user: string) => {
+    const toUser = connectedClients.find(client => client.user == user);
+    
+    if (toUser) {
+      // console.log('toUser.socket:', toUser.socket);
+      
+      if (toUser.socket) {
+        // Verifica se o objeto socket existe antes de tentar usá-lo para enviar a mensagem.
+        toUser.socket.emit('userWritingPrivate', msg);
+        console.log(toUser);
+      }
+    }
+  });
+
+  socket.on('disconnect', () => {
     console.log('desconectado: ' + socket.id);
-     //Remove o ID do socket desconectado do array
-     connectedClients = connectedClients.filter(client => client.socket_id !== socket.id);
-     // Desconecta o usuário
-     io.sockets.connected[socket.id].disconnect();
+  
+    //Remove o ID do socket desconectado do array
+    connectedClients = connectedClients.filter(client => client.socket_id !== socket.id);
+
+    const clientsToSend = connectedClients.map(client => ({ socket_id: client.socket_id, user: client.user }));
+    io.emit('connectedClients', clientsToSend);
   });
 });
-
-
 
 server.listen(2001);
