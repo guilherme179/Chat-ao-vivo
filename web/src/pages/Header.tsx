@@ -25,17 +25,17 @@ export default function Header(socket: ChatProps) {
   function logout() {
     socket.socket.disconnect();
     sessionStorage.clear();
-    navigate("/login");
+    navigate("/");
   }
 
   useEffect(() => {
-    if(token == '' || token == null) navigate("/login");
+    if(token == '' || token == null) navigate("/");
     else{
       const decode: any = jwt_decode(token);
       setUsername(decode.user);
     }  
-    if(exp !== null && Number(exp) < now) navigate("/login");
-    else if(exp == null) navigate("/login");
+    if(exp !== null && Number(exp) < now) navigate("/");
+    else if(exp == null) navigate("/");
   }, [token, exp, now, navigate]);
   
   return(

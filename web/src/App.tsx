@@ -1,7 +1,6 @@
 import './styles/global.css';
 import { Login } from './pages/Login';
 import { Chat } from './pages/Chat';
-import { Home } from './pages/Home';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import * as socketIO from 'socket.io-client';
 
@@ -18,8 +17,7 @@ export function App() {
     <div className="App">
       <Router>
         <Routes>
-          <Route  path="/" element={<Home />} />
-          <Route  path="/login" element={<Login />} />
+          <Route  path="/" element={<Login />} />
           <Route  path="/chat" element={<Chat socket={socket} />} />
         </Routes>
       </Router>
