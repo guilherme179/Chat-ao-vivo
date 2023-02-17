@@ -2,7 +2,6 @@ import { useState, useEffect } from "react";
 import jwt_decode from "jwt-decode";
 import { useNavigate } from "react-router-dom";
 import * as socketIO from 'socket.io-client';
-import { useLocation } from 'react-router-dom';
 
 interface DefaultEventsMap {
   on: any;
@@ -22,7 +21,6 @@ export default function Header(socket: ChatProps) {
   const token = sessionStorage.getItem('token'); 
   const exp = sessionStorage.getItem('exp');
   const now = Math.floor(Date.now() / 1000);  
-  const location = useLocation();
 
   function logout() {
     socket.socket.disconnect();
@@ -42,11 +40,7 @@ export default function Header(socket: ChatProps) {
   
   return(
     <div className="w-full h-16 bg-login-700 flex flex-row">
-      <div className="pl-3 p-1 w-[20%] flex flex-row items-center justify-between">
-        <a className={`text-white font-semibold text-lg p-[10px] hover:rounded-md rounded-md ${location.pathname === "/chat" ? "bg-green-800" : ""} ${location.pathname === "/chat" ? "hover:bg-green-700" : "hover:bg-green-800"}`} href="/chat">Chat geral</a>
-        <a className={`text-white font-semibold text-lg p-[10px] hover:rounded-md rounded-md ${location.pathname === "/private" ? "bg-green-800" : ""} ${location.pathname === "/private" ? "hover:bg-green-700" : "hover:bg-green-800"}`} href="/private">Private</a>
-      </div>
-      <div className="flex items-center w-2/3 justify-center">
+      <div className="flex items-center w-2/3 justify-start">
         <img src="./src/img/Chat Online.svg" alt="logo" />
       </div>
       <div className="w-[24%] flex items-center justify-around">
