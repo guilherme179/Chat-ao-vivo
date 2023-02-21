@@ -29,6 +29,7 @@ export function Chat ({ socket }: ChatProps) {
   const [username, setUsername] = useState(''); 
   const [yourMessage, setYourMessage] = useState(''); 
   const [broadcast, setBroadcast] = useState(''); 
+  const [usersWriting, setUsersWriting] = useState<string[]>([]); 
   const [messages, setMessages] = useState<Message[]>([]);
   const [users, setUsers] = useState<ConnectedClients[]>([]);
 
@@ -51,9 +52,35 @@ export function Chat ({ socket }: ChatProps) {
     setUsers(connectedClientsArray);
   });
 
-  socket.on('userWriting', (broadcast: string) => { 
-    setBroadcast(broadcast);
+  socket.on('userWriting', (users: string[]) => {
+    setUsersWriting(users);
   });
+
+  socket.on('userStopingWriting', () => {
+    setUsersWriting([]);
+    setBroadcast('');
+  });
+
+  // Função para exibir as notificações de digitação aleatoriamente
+function showWritingNotifications() {
+  // Se não há notificações no array, não faz nada
+  if (usersWriting.length === 0) {
+    return;
+  }
+
+  // Escolhe uma notificação aleatoriamente
+  const randomIndex = Math.floor(Math.random() * usersWriting.length);
+  const notification = usersWriting[randomIndex];
+
+  // Exibe a notificação na tela
+  setBroadcast(notification);
+
+  // Remove a notificação do array
+  usersWriting.splice(randomIndex, 1);
+}
+
+// Intervalo de tempo para exibir as notificações
+setInterval(showWritingNotifications, 2000);
 
   const handleSubmit = async (e: MouseEvent<HTMLButtonElement, MouseEvent>) => {
     e.preventDefault();
@@ -65,7 +92,7 @@ export function Chat ({ socket }: ChatProps) {
       };
 
       socket.emit('sendMessage', messageObject);
-      socket.emit('writing', '');
+      socket.emit('stopWriting', username + ' is writing...');
 
       setYourMessage('');
     }
@@ -156,7 +183,7 @@ export function Chat ({ socket }: ChatProps) {
             <p className="flex items-end">{broadcast}</p>
           </div>
           <div className="w-full flex place-content-center">
-            <input type="text" maxLength={255} placeholder="Your message..." value={yourMessage} onChange={(e) => { setYourMessage(e.target.value); if(e.target.value.length > 0){socket.emit('writing', username + ' is writing...');} else { socket.emit('writing', '')}}}  className="bg-login-700 w-[48%] flex text-center p-3 rounded-md outline-none focus:border-zinc-300 focus:border text-zinc-300 text-xl mt-5"/>
+            <input type="text" maxLength={255} placeholder="Your message..." value={yourMessage} onChange={(e) => { setYourMessage(e.target.value); if(e.target.value.length > 0){socket.emit('writing', username + ' is writing...');} else { socket.emit('stopWriting', username + ' is writing...')}}}  className="bg-login-700 w-[48%] flex text-center p-3 rounded-md outline-none focus:border-zinc-300 focus:border text-zinc-300 text-xl mt-5"/>
             <button className="bg-green-800 w-[10%] flex justify-center items-center p-3 ml-[2%] rounded-md outline-none hover:bg-green-700 text-white text-base mt-5" onClick={handleSubmit} >Submit</button>
           </div>
         </div>

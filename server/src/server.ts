@@ -55,6 +55,7 @@ io.use(async (socket, next) => {
 });
 
 let connectedClients = [];
+let usersWriting: string[] = [];
 
 io.on('connection', async socket =>{
   
@@ -79,8 +80,20 @@ io.on('connection', async socket =>{
     io.emit('receivedMessage', await MessagesController.getSavedMessage(data));
   });
 
-  socket.on('writing', (msg: string) => {
-    socket.broadcast.emit('userWriting', msg);
+  socket.on('writing', (user: string) => {
+    if (!usersWriting.includes(user)) {
+      usersWriting.push(user);
+    }
+    socket.broadcast.emit('userWriting', usersWriting);
+  });
+
+  socket.on('stopWriting', (user: string) => {
+    usersWriting = usersWriting.filter((u) => u !== user);
+    if(usersWriting.length === 0){
+      io.emit('userStopingWriting');
+    }else{
+      io.emit('userWriting', usersWriting);
+    }
   });
 
   socket.on('writingPrivate', (msg: string, user: string) => {
@@ -98,7 +111,7 @@ io.on('connection', async socket =>{
   });
 
   socket.on('disconnect', () => {
-    console.log('desconectado: ' + socket.id);
+    // console.log('desconectado: ' + socket.id);
   
     //Remove o ID do socket desconectado do array
     connectedClients = connectedClients.filter(client => client.socket_id !== socket.id);
