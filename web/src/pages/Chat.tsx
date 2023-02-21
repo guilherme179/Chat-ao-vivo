@@ -44,6 +44,7 @@ export function Chat ({ socket }: ChatProps) {
     user: string;
   }
 
+<<<<<<< HEAD
   socket.on('receivedMessage', (message: Message) => { 
     setMessages([...messages, message]);
   });
@@ -82,6 +83,8 @@ function showWritingNotifications() {
 // Intervalo de tempo para exibir as notificações
 setInterval(showWritingNotifications, 2000);
 
+=======
+>>>>>>> 4be51f82c017260e57056328bfd68fe520265f4d
   const handleSubmit = async (e: MouseEvent<HTMLButtonElement, MouseEvent>) => {
     e.preventDefault();
 
@@ -108,12 +111,24 @@ setInterval(showWritingNotifications, 2000);
         setMessages(messages);
       }
     });
-    
+
+    socket.on('receivedMessage', (message: Message) => { 
+      setMessages([...messages, message]);
+    });
+
+    socket.on('connectedClients', (connectedClientsArray: any) => { 
+      setUsers(connectedClientsArray);
+    });
+
+    socket.on('userWriting', (broadcast: string) => { 
+      setBroadcast(broadcast);
+    });
+
     if(token != null && token != ''){
       const decode: any = jwt_decode(token);
       setUsername(decode.user);
     }
-  }, []);
+  }, [broadcast, users, messages, username]);
 
   let lastAuthor = '';
   let lastDate: Date = new Date(0);

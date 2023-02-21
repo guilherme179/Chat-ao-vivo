@@ -63,13 +63,13 @@ io.on('connection', async socket =>{
   if (!userAlreadyConnected) {
     connectedClients.push({ socket_id: socket.id, user: socket.user.user, socket: socket });
   }
-
-  // console.log(connectedClients);
-
+  
   socket.emit('previousMessage', await MessagesController.getAllMessages());
   
   const clientsToSend = connectedClients.map(client => ({ socket_id: client.socket_id, user: client.user }));
   io.emit('connectedClients', clientsToSend);
+  
+  console.log(clientsToSend);
 
   socket.on('sendMessage', async (data: any) => {   
     await MessagesController.saveMessage(data);
@@ -93,20 +93,6 @@ io.on('connection', async socket =>{
       io.emit('userStopingWriting');
     }else{
       io.emit('userWriting', usersWriting);
-    }
-  });
-
-  socket.on('writingPrivate', (msg: string, user: string) => {
-    const toUser = connectedClients.find(client => client.user == user);
-    
-    if (toUser) {
-      // console.log('toUser.socket:', toUser.socket);
-      
-      if (toUser.socket) {
-        // Verifica se o objeto socket existe antes de tentar usá-lo para enviar a mensagem.
-        toUser.socket.emit('userWritingPrivate', msg);
-        console.log(toUser);
-      }
     }
   });
 
